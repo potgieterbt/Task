@@ -8,36 +8,39 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
-// "io"
+func addTask(path string, task string) error {
+	f, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	if err != nil {
+		panic(err)
+	}
 
-func addTask(path string) error {
-	err := os.WriteFile(path, []byte("this is a test"), 0644)
+	defer f.Close()
+
+	if _, err = f.WriteString(task + "\n"); err != nil {
+		panic(err)
+	}
 	return err
 }
 
 func removeTask(path string, Index int) error {
-	// Working idea:
-	//      Read line by line into a temp file until reach Index value
-	//      Skip line == Index value and continue to read into temp file
-	//      Rename temp file to original file
 	f, err := os.Open(path)
 	if err != nil {
 		return err
 	}
 
-    temp, err := os.Create("temp.txt")
+	temp, err := os.Create("temp.txt")
 	if err != nil {
 		return err
 	}
 
-    defer temp.Close()
+	defer temp.Close()
 
 	scanner := bufio.NewScanner(f)
 	i := 1
 	for scanner.Scan() {
 		fmt.Println(scanner.Text())
 		if i != Index {
-			fmt.Fprintln(temp, scanner.Text()) // print values to f, one per line
+			fmt.Fprintln(temp, scanner.Text())
 		}
 		i++
 	}
@@ -52,7 +55,7 @@ func removeTask(path string, Index int) error {
 		return err
 	}
 	defer f.Close()
-    err = os.Rename("temp.txt", "./test.txt")
+	err = os.Rename("temp.txt", "./test.txt")
 	if err != nil {
 		return err
 	}
@@ -69,7 +72,7 @@ func listTasks(path string) error {
 	defer f.Close()
 
 	scanner := bufio.NewScanner(f)
-	i := 0
+	i := 1
 	for scanner.Scan() {
 		fmt.Println(i, scanner.Text())
 		i++
@@ -121,10 +124,18 @@ func main() {
 		if err != nil {
 			panic(err.Error())
 		}
+		err = listTasks(fpath)
+		if err != nil {
+			panic(err.Error())
+		}
 	}
 
-	fmt.Println("Add: ", task)
-	fmt.Println("Remove: ", taskidx)
-	fmt.Println("List: ", *listPtr)
-	fmt.Println("File: ", fpath)
+	if len(task) > 0 {
+		addTask(fpath, task)
+		err = listTasks(fpath)
+		if err != nil {
+			panic(err.Error())
+		}
+	}
+
 }

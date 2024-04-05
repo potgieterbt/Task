@@ -81,6 +81,9 @@ func listTasks(path string) error {
 	if err := scanner.Err(); err != nil {
 		return err
 	}
+    if i == 1 {
+        fmt.Println("Task List is empty")
+    }
 	return err
 }
 
@@ -137,5 +140,12 @@ func main() {
 			panic(err.Error())
 		}
 	}
+
+    if len(os.Args) < 2 {
+		err = listTasks(fpath)
+		if err != nil {
+			panic(err.Error())
+		}
+    }
 
 }
